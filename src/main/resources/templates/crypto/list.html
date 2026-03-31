@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Crypto — CryptoFin</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+<body class="bg-dark text-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-warning" th:href="@{/}"><i class="bi bi-currency-bitcoin"></i> CryptoFin</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link active" th:href="@{/crypto}"><i class="bi bi-coin"></i> Crypto</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/currencies}"><i class="bi bi-cash-coin"></i> Currencies</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/portfolio}"><i class="bi bi-briefcase"></i> Portfolio</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container-fluid py-4 px-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="text-warning mb-0"><i class="bi bi-coin"></i> Cryptocurrency Market</h4>
+        <form th:action="@{/crypto}" method="get" class="d-flex gap-2">
+            <input type="text" name="search" class="form-control search-input"
+                   placeholder="Search coin..." th:value="${search}" style="width:220px"/>
+            <button type="submit" class="btn btn-accent"><i class="bi bi-search"></i></button>
+            <a th:if="${search}" th:href="@{/crypto}" class="btn btn-outline-secondary">Clear</a>
+        </form>
+    </div>
+
+    <div class="card-dark p-3">
+        <div th:if="${coins.isEmpty()}" class="text-center text-muted py-5">
+            <i class="bi bi-hourglass-split fs-1"></i>
+            <p class="mt-2">No coins found. Data is loading...</p>
+        </div>
+        <div class="table-responsive" th:if="${!coins.isEmpty()}">
+            <table class="table table-dark-custom table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Coin</th>
+                    <th class="text-end">Price (USD)</th>
+                    <th class="text-end">24h Change</th>
+                    <th class="text-end">Market Cap</th>
+                    <th class="text-end">Volume 24h</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="coin, stat : ${coins}">
+                    <td class="text-muted" th:text="${stat.count}">1</td>
+                    <td>
+                        <img th:src="${coin.imageUrl}" class="coin-img me-2" th:alt="${coin.name}"/>
+                        <span class="fw-semibold" th:text="${coin.name}">Bitcoin</span>
+                        <span class="badge bg-secondary ms-1 small" th:text="${coin.symbol}">BTC</span>
+                    </td>
+                    <td class="text-end fw-semibold"
+                        th:text="'$' + ${#numbers.formatDecimal(coin.priceUsd ?: 0, 1, 4)}">$0</td>
+                    <td class="text-end">
+                        <span th:classappend="${(coin.priceChangePercent24h ?: 0) >= 0} ? 'badge-positive' : 'badge-negative'"
+                              class="badge-change"
+                              th:text="${(coin.priceChangePercent24h ?: 0) >= 0 ? '+' : ''} + ${#numbers.formatDecimal(coin.priceChangePercent24h ?: 0, 1, 2)} + '%'">0%</span>
+                    </td>
+                    <td class="text-end text-muted"
+                        th:text="'$' + ${#numbers.formatDecimal((coin.marketCap ?: 0) / 1000000000, 1, 2)} + 'B'">$0B</td>
+                    <td class="text-end text-muted"
+                        th:text="'$' + ${#numbers.formatDecimal((coin.volume24h ?: 0) / 1000000, 1, 0)} + 'M'">$0M</td>
+                    <td>
+                        <a th:href="@{/crypto/{id}(id=${coin.id})}" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-graph-up"></i>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

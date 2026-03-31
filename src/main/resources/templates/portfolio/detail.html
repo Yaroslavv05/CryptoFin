@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title th:text="${portfolio.name} + ' — CryptoFin'">Portfolio — CryptoFin</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+<body class="bg-dark text-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-black border-bottom border-secondary">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-warning" th:href="@{/}"><i class="bi bi-currency-bitcoin"></i> CryptoFin</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/crypto}"><i class="bi bi-coin"></i> Crypto</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/currencies}"><i class="bi bi-cash-coin"></i> Currencies</a></li>
+                <li class="nav-item"><a class="nav-link active" th:href="@{/portfolio}"><i class="bi bi-briefcase"></i> Portfolio</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container-fluid py-4 px-4">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a th:href="@{/portfolio}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back</a>
+        <h4 class="mb-0 text-warning" th:text="${portfolio.name}">Portfolio</h4>
+        <a th:href="@{/portfolio/{id}/edit(id=${portfolio.id})}" class="btn btn-sm btn-outline-secondary ms-auto">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+    </div>
+
+    <!-- Summary stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="text-muted small">Total Invested</div>
+                <div class="stat-value text-light"
+                     th:text="'$' + ${#numbers.formatDecimal(portfolio.totalInvestedUsd, 1, 2)}">$0</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="text-muted small">Current Value</div>
+                <div class="stat-value text-warning"
+                     th:text="'$' + ${#numbers.formatDecimal(portfolio.totalCurrentUsd, 1, 2)}">$0</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="text-muted small">P&amp;L (USD)</div>
+                <div class="stat-value"
+                     th:classappend="${portfolio.profitLossUsd >= 0} ? 'text-positive' : 'text-negative'"
+                     th:text="${portfolio.profitLossUsd >= 0 ? '+' : ''} + '$' + ${#numbers.formatDecimal(portfolio.profitLossUsd, 1, 2)}">$0</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="text-muted small">P&amp;L (%)</div>
+                <div class="stat-value"
+                     th:classappend="${portfolio.profitLossPercent >= 0} ? 'text-positive' : 'text-negative'"
+                     th:text="${portfolio.profitLossPercent >= 0 ? '+' : ''} + ${#numbers.formatDecimal(portfolio.profitLossPercent, 1, 2)} + '%'">0%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Holdings table -->
+    <div class="card-dark p-3 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 text-warning"><i class="bi bi-list-ul"></i> Holdings</h6>
+            <button class="btn btn-sm btn-accent" data-bs-toggle="modal" data-bs-target="#addItemModal">
+                <i class="bi bi-plus-lg"></i> Add Coin
+            </button>
+        </div>
+
+        <div th:if="${portfolio.items.isEmpty()}" class="text-center text-muted py-4">
+            No holdings yet. Add your first coin!
+        </div>
+
+        <div class="table-responsive" th:if="${!portfolio.items.isEmpty()}">
+            <table class="table table-dark-custom table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>Coin</th>
+                    <th class="text-end">Amount</th>
+                    <th class="text-end">Buy Price</th>
+                    <th class="text-end">Current Price</th>
+                    <th class="text-end">Invested</th>
+                    <th class="text-end">Current Value</th>
+                    <th class="text-end">P&amp;L</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${portfolio.items}">
+                    <td>
+                        <img th:src="${item.coinImage}" class="coin-img me-2" th:alt="${item.coinName}"/>
+                        <span class="fw-semibold" th:text="${item.coinName}">Bitcoin</span>
+                        <span class="text-muted small ms-1" th:text="${item.coinSymbol}">BTC</span>
+                    </td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.amount, 1, 6)}">0</td>
+                    <td class="text-end text-muted"
+                        th:text="'$' + ${#numbers.formatDecimal(item.buyPriceUsd, 1, 4)}">$0</td>
+                    <td class="text-end text-warning"
+                        th:text="'$' + ${#numbers.formatDecimal(item.currentPriceUsd, 1, 4)}">$0</td>
+                    <td class="text-end"
+                        th:text="'$' + ${#numbers.formatDecimal(item.investedUsd, 1, 2)}">$0</td>
+                    <td class="text-end"
+                        th:text="'$' + ${#numbers.formatDecimal(item.currentValueUsd, 1, 2)}">$0</td>
+                    <td class="text-end">
+                        <span th:classappend="${item.profitLossUsd >= 0} ? 'text-positive' : 'text-negative'" class="fw-semibold"
+                              th:text="${item.profitLossUsd >= 0 ? '+' : ''} + '$' + ${#numbers.formatDecimal(item.profitLossUsd, 1, 2)}">$0</span>
+                        <br/>
+                        <span class="small"
+                              th:classappend="${item.profitLossPercent >= 0} ? 'text-positive' : 'text-negative'"
+                              th:text="${item.profitLossPercent >= 0 ? '+' : ''} + ${#numbers.formatDecimal(item.profitLossPercent, 1, 2)} + '%'">0%</span>
+                    </td>
+                    <td>
+                        <form th:action="@{/portfolio/{id}/items/{itemId}/delete(id=${portfolio.id},itemId=${item.id})}"
+                              method="post" onsubmit="return confirm('Remove this holding?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger border-0">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- Add Item Modal -->
+<div class="modal fade" id="addItemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-warning"><i class="bi bi-plus-circle"></i> Add Holding</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/portfolio/{id}/items(id=${portfolio.id})}" method="post" th:object="${itemForm}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Coin *</label>
+                        <select th:field="*{coinId}" class="form-select search-input">
+                            <option value="">— Select coin —</option>
+                            <option th:each="c : ${coins}" th:value="${c.id}"
+                                    th:text="${c.name} + ' (' + ${c.symbol} + ')'">Bitcoin (BTC)</option>
+                        </select>
+                        <div class="text-danger small" th:if="${#fields.hasErrors('coinId')}" th:errors="*{coinId}"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Amount *</label>
+                        <input type="number" th:field="*{amount}" step="0.00000001"
+                               class="form-control search-input" placeholder="e.g. 0.5"/>
+                        <div class="text-danger small" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Buy Price (USD) *</label>
+                        <input type="number" th:field="*{buyPriceUsd}" step="0.0001"
+                               class="form-control search-input" placeholder="e.g. 42000"/>
+                        <div class="text-danger small" th:if="${#fields.hasErrors('buyPriceUsd')}" th:errors="*{buyPriceUsd}"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Buy Date *</label>
+                        <input type="date" th:field="*{buyDate}" class="form-control search-input"/>
+                        <div class="text-danger small" th:if="${#fields.hasErrors('buyDate')}" th:errors="*{buyDate}"></div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-accent">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:if="${showAddModal}">
+    document.addEventListener('DOMContentLoaded', function () {
+        new bootstrap.Modal(document.getElementById('addItemModal')).show();
+    });
+</script>
+</body>
+</html>
